@@ -20,6 +20,16 @@ def find_post(id):
         if p["id"] == id:
             return p
 
+def find_index_post(id):
+    for i,p in enumerate(my_posts): #enumerate() returns both index and value of the iterable, 
+        # What enumerate(my_posts) looks like under the hood:
+        # [
+        #     (0, {"title": "Post 1"}), 
+        #     (1, {"title": "Post 2"})
+        # ]
+        if p["id"] == id:
+            return i
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -78,3 +88,38 @@ def get_post(id: int, res: Response): #here the pydantic model enforces, convert
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} was not found")
     else:
         return {"post_detail": post}
+
+# @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT) #204 is for successful deletion, good practice
+# def delete_post(id: int):
+#     post = find_post(id)
+#     if not post:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} could not be deleted since its not found")
+#     else:
+#         print( my_posts)
+#         my_posts.remove(post)
+#         print(my_posts)
+#         # return {"message": f"post with id: {id} has been deleted"} cuz the 204 mandates res body to be empty, and makes the body empty forcefully even if we have returned some body
+#         return
+
+#another method of deleting
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT) 
+def delete_post(id: int):
+    index = find_index_post(id)
+    if index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} could not be deleted since its not found")
+    else:
+        my_posts.pop(index) #pop removes the element and returns it back to us
+        return
+
+@app.put("/posts/{id}")
+def update_post(id: int, post: Post):
+    index = find_index_post(id)
+    if index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} could not be updated since its not found")
+    else:
+        post_dict = post.model_dump()
+        post_dict["id"] = id #cuz Post instance of pydantic model does not have id field, so we need to add it manually to make it compatible with our my_posts 
+        print(my_posts[index])
+        my_posts[index] = post_dict
+        print(my_posts[index])
+        return {"message": f"post with id: {id} has been updated"}
