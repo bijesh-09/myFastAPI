@@ -21,6 +21,11 @@ db_user = settings.database_username
 # SQLALCHEMY_DATABASE_URL = f"postgresql://<username>:<password>@<ip_addr OR hostname>/<database_name>"
 SQLALCHEMY_DATABASE_URL = f"postgresql://{db_user}:{db_pass}@localhost/fastapi"
 
+# engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True) # doing echo true is for debugging purpose, it will print all the sql statements in the console
+
+# #do this specifically for sqlite db, cuz it cant handle concurrency
+# engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=={"check_same_thread": False}) 
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -52,6 +52,13 @@ class Post(BaseModel):
 async def root():
     return {"message": "Hello World"}
 
+@app.get("/sqlalchemy")
+def test_posts(db: Session = Depends(get_db)):
+    
+    posts = db.query(models.Post).all() #this will return all the posts in the posts table
+    
+    return {"data": posts}
+
 @app.get("/posts")
 def get_posts():
     cursor.execute(""" SELECT * FROM posts """)
