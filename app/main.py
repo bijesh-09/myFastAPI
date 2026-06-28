@@ -7,12 +7,19 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from pathlib import Path 
 
+#setting up orm
+from app import models #note this app is the ./app/ dir as a package due to __init__.py, not the instance of FastAPI() file in it. so we can import models.py from it
+from app.database import engine, get_db
+from fastapi import Depends
+from sqlalchemy.orm import Session
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 
-# setting up env variables using pydantic's BaseSettings class
 BASE_DIR = Path(__file__).resolve().parent  # basedir will be my_fast_api/app
+
+# setting up env variables using pydantic's BaseSettings class
 class Settings(BaseSettings):
     database_password: str
     database_username: str = "postgres"  
@@ -45,7 +52,6 @@ class Post(BaseModel):
 async def root():
     return {"message": "Hello World"}
 
-
 @app.get("/posts")
 def get_posts():
     cursor.execute(""" SELECT * FROM posts """)
@@ -57,7 +63,12 @@ def get_posts():
 def create_post(post: Post):  # now payload is an instance of the Post class
 
     # NOTE THE fstring one in below line is technically correct but prone to SQL injection
-    # cursor.execute(f"INSERT INTO posts (title, content, published) VALUES ({post.title}, {post.content}, {post.published})")
+    # cursor.execute(f"INSERT INTO posts (title, content, published) VALUES ('{post.title}', '{post.content}', {post.published}) RETURNING *") #using '' for post.title and content cuz they can be spaced strings and python expects strings inside ''
+    #eg:
+    # {
+    #     "title": "hacked','',true );DROP TABLE posts; --",
+    #     "content": ""
+    # }
 
     #use below line , cuz psycopg2 auto sanitizes the input values and prevents SQL injection 
     cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
