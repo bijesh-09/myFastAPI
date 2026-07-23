@@ -9,6 +9,6 @@ class Post(Base): #every orm models will be extended from Base class. also each 
 
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False)
-    content = Column(String, nullable=False)
+    content = Column(String, nullable=False)    
     published = Column(Boolean, server_default=text("TRUE"), nullable=False)
-    create_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")) 
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")) 
