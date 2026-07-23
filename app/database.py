@@ -35,9 +35,18 @@ SQLALCHEMY_DATABASE_URL = f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}
 # #do this specifically for sqlite db, cuz it cant handle concurrency
 # engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=={"check_same_thread": False})
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+try:
+    engine = create_engine(SQLALCHEMY_DATABASE_URL) 
+    print("Database connection was successful")
+except Exception as e:
+    print(f"Database connection failed, error: {e}")
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+try:
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    print("Sessionmaker creation was successful")
+except Exception as e:
+    print(f"Sessionmaker creation failed, error: {e}")
+    
 
 Base = declarative_base()
 

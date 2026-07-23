@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 class PostBase(BaseModel):
@@ -18,3 +18,14 @@ class PostUpdate(PostBase): # we can add additional things if we want
 # since we dont want to send id and createdat to browser, we will create this class that has only title, content and published
 class PostRespond(PostBase): 
     created_at: datetime
+
+class UserBase(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserCreate(BaseModel):
+    email: EmailStr 
+    created_at: datetime
+
+class UserGet(UserCreate):
+    id: int
