@@ -1,18 +1,19 @@
 from fastapi import status, HTTPException, Depends, APIRouter
 from app import pydantic_schemas, models
+from app import oauth2 
 from sqlalchemy.orm import Session
 from app.database import get_db
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 @router.get("/", response_model=list[pydantic_schemas.PostRespond]) #our Postrespond class is only for single dict , but we are returning list of dicts
-def get_posts(db:Session = Depends(get_db)):
+def get_posts(db:Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     posts = db.query(models.Post).all()
     return posts
 
 # provide 201 for creation, good practice
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=pydantic_schemas.PostRespond) #response_model is for sending res body to browser
-def create_post(payload: pydantic_schemas.PostCreate, db: Session = Depends(get_db)):  # now payload is an instance of the Post class
+def create_post(payload: pydantic_schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):  # now payload is an instance of the Post class
 
     # NOTE the new_post will have only the fields of the Post orm is present in payload's body
     new_post = models.Post(**payload.model_dump()) # ** is for unpacking the dict and assigning it to resspective fields
@@ -25,7 +26,7 @@ def create_post(payload: pydantic_schemas.PostCreate, db: Session = Depends(get_
 
 
 @router.get("/{id}", response_model=pydantic_schemas.PostRespond)
-def get_post(id: int, db:Session = Depends(get_db)): 
+def get_post(id: int, db:Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): 
 
     post = db.query(models.Post).filter(models.Post.id == id).first()
 
@@ -37,7 +38,7 @@ def get_post(id: int, db:Session = Depends(get_db)):
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db:Session = Depends(get_db)):
+def delete_post(id: int, db:Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     # Method1 query level delete best for bulk querying
     deleted_post_query = db.query(models.Post).filter(models.Post.id == id)
@@ -62,7 +63,7 @@ def delete_post(id: int, db:Session = Depends(get_db)):
     #     return #empty since 204 mandates empty res body
 
 @router.put("/{id}", response_model=pydantic_schemas.PostRespond)
-def update_post(id: int, payload: pydantic_schemas.PostUpdate, db: Session = Depends(get_db)):
+def update_post(id: int, payload: pydantic_schemas.PostUpdate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     post_query = db.query(models.Post).filter(models.Post.id == id)
 
