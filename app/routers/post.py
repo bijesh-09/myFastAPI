@@ -3,12 +3,14 @@ from app import pydantic_schemas, models
 from app import oauth2 
 from sqlalchemy.orm import Session
 from app.database import get_db
+from typing import Optional
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 @router.get("/", response_model=list[pydantic_schemas.PostRespond]) #our Postrespond class is only for single dict , but we are returning list of dicts
-def get_posts(db:Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    posts = db.query(models.Post).all()
+def get_posts(db:Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),
+              limit: int = 5, skip: int = 0, search: Optional[str] = ""): #here limit, skip and search are custome made query parameter
+    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return posts
 
 # provide 201 for creation, good practice
@@ -16,7 +18,7 @@ def get_posts(db:Session = Depends(get_db), current_user: int = Depends(oauth2.g
 def create_post(payload: pydantic_schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):  # now payload is an instance of the Post class
 
     # NOTE the new_post will have only the fields of the Post orm is present in payload's body
-    new_post = models.Post(**payload.model_dump()) # ** is for unpacking the dict and assigning it to resspective fields
+    new_post = models.Post(owner_id=current_user.id, **payload.model_dump()) # ** is for unpacking the dict and assigning it to resspective fields
     db.add(new_post)    
     db.flush() #sends query into tx
     db.commit() #sends tx into hardrive
@@ -46,6 +48,11 @@ def delete_post(id: int, db:Session = Depends(get_db), current_user: int = Depen
     if deleted_post_query.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {id} could not be deleted since its not found")
+
+    to_be_deleted_post = deleted_post_query.first()
+    if to_be_deleted_post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"Not authorized to perform requested action")
     else:
         deleted_post_query.delete(synchronize_session=False)
         db.commit()
@@ -72,6 +79,10 @@ def update_post(id: int, payload: pydantic_schemas.PostUpdate, db: Session = Dep
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {id} could not be updated since its not found")
+
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"Not authorized to perform requested action")
     else:
         post_query.update(payload.model_dump(), synchronize_session=False)
         db.commit()

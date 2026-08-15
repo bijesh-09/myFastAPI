@@ -1,27 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pathlib import Path
+from app.myenv import settings
 
 # NOTE THIS FILE USES SQLALCHEMY ORM OF VERSION 1.4.23
 
-BASE_DIR = Path(__file__).resolve().parent  # basedir will be my_fast_api/app
 
-
-class Settings(BaseSettings):
-    database_password: str
-    database_username: str = "postgres"
-    database_host: str = "localhost"
-    database_name: str = "fastapi"
-
-    #this is depricated
-    class Config:
-        env_file = BASE_DIR/".env"
-
-    # model_config = SettingsConfigDict(env_file=BASE_DIR/".env", extra="ignore")
-
-settings = Settings()
 db_pass = settings.database_password
 db_user = settings.database_username
 db_host = settings.database_host
