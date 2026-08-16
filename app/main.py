@@ -4,7 +4,7 @@ from fastapi import FastAPI
 #setting up orm
 from app import models #note this app is the ./app/ dir as a package due to __init__.py, not the instance of FastAPI() file in it. so we can import models.py from it
 from app.database import engine
-from app.routers import post, user, auth
+from app.routers import post, user, auth, vote
 
 #creates all the tables in the db if they dont exist already, note all the tables we defined in models.py belongs to metadata of Base class
 try:
@@ -25,3 +25,4 @@ async def root():
 app.include_router(post.router)
 app.include_router(user.router)
 app.include_router(auth.router)
+app.include_router(vote.router)

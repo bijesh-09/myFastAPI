@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import Literal
 
 class PostBase(BaseModel):
     id: int | None = None
@@ -26,6 +27,11 @@ class PostRespond(PostBase):
     owner_id: int
     owner: UserCreate
 
+class PostWithVotes(BaseModel):
+    Post: PostRespond
+    votes: int
+
+
 class UserBase(BaseModel):
     email: EmailStr
     password: str
@@ -44,3 +50,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: str | None = None
+
+class Vote(BaseModel):
+    post_id: int
+    dir: Literal[0, 1]  # making values strictly 0 or 1

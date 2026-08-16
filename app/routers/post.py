@@ -2,15 +2,20 @@ from fastapi import status, HTTPException, Depends, APIRouter
 from app import pydantic_schemas, models
 from app import oauth2 
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
 from typing import Optional
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
-@router.get("/", response_model=list[pydantic_schemas.PostRespond]) #our Postrespond class is only for single dict , but we are returning list of dicts
+@router.get("/", response_model=list[pydantic_schemas.PostWithVotes]) #our Postrespond class is only for single dict , but we are returning list of dicts
 def get_posts(db:Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),
               limit: int = 5, skip: int = 0, search: Optional[str] = ""): #here limit, skip and search are custome made query parameter
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    
+    posts = db.query(models.Post, func.count(models.Vote.user_id).label("votes")).join(
+        models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).filter(
+            models.Post.title.contains(search)).limit(limit).offset(skip).all()
+
     return posts
 
 # provide 201 for creation, good practice
@@ -27,10 +32,12 @@ def create_post(payload: pydantic_schemas.PostCreate, db: Session = Depends(get_
 
 
 
-@router.get("/{id}", response_model=pydantic_schemas.PostRespond)
+@router.get("/{id}", response_model=pydantic_schemas.PostWithVotes)
 def get_post(id: int, db:Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)): 
 
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post, func.count(models.Vote.user_id).label("votes")).join(
+        models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(
+            models.Post.id).filter(models.Post.id == id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
