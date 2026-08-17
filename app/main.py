@@ -7,11 +7,12 @@ from app.database import engine
 from app.routers import post, user, auth, vote
 
 #creates all the tables in the db if they dont exist already, note all the tables we defined in models.py belongs to metadata of Base class
-try:
-    models.Base.metadata.create_all(bind=engine)
-    print("Tables creation  for models that didn't existed was successful")
-except Exception as e:
-    print(f"Tables creation failed, error: {e}")
+# try:
+#     models.Base.metadata.create_all(bind=engine)
+#     print("Tables creation  for models that didn't existed was successful")
+# except Exception as e:
+#     print(f"Tables creation failed, error: {e}")
+# COMMENTING THESE OUT CUZ NOW ALEMBIC WILL HANDLE ALL OF THEM
 
 #instantiating FastAPI class, this is the main instance of the app
 app = FastAPI()
