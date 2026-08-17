@@ -1,5 +1,6 @@
 # Response is for manipulating res from server side
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 #setting up orm
 from app import models #note this app is the ./app/ dir as a package due to __init__.py, not the instance of FastAPI() file in it. so we can import models.py from it
@@ -16,6 +17,16 @@ from app.routers import post, user, auth, vote
 
 #instantiating FastAPI class, this is the main instance of the app
 app = FastAPI()
+
+origins = ["https://www.google.com"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # api dev starting: 
 
