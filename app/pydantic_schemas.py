@@ -10,8 +10,9 @@ class PostBase(BaseModel):
 
 #for sending req body from browser to fastapi server
 #here these title content and published will be send to db that appends that along with other attributes like id, createdat
-class PostCreate(PostBase):
-    pass
+class PostCreate(BaseModel):
+    title: str
+    content: str
 
 class PostUpdate(PostBase): # we can add additional things if we want
     pass

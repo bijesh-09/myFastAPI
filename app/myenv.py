@@ -14,9 +14,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 
     #this is depricated
-    class Config:
-        env_file = BASE_DIR/".env"
+    # class Config:
+    #     env_file = BASE_DIR/".env"
 
-    # model_config = SettingsConfigDict(env_file=BASE_DIR/".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=BASE_DIR/".env",
+        env_file_encoding="utf-8",
+        extra="ignore")
 
 settings = Settings()
