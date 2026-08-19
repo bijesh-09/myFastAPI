@@ -14,8 +14,9 @@ class PostCreate(BaseModel):
     title: str
     content: str
 
-class PostUpdate(PostBase): # we can add additional things if we want
-    pass
+class PostUpdate(BaseModel): # we can add additional things if we want
+    title: str
+    content: str
 
 class UserCreate(BaseModel):
     email: EmailStr 
