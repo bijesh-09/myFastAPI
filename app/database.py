@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.expression import text
 from app.myenv import settings
 
 # NOTE THIS FILE USES SQLALCHEMY ORM OF VERSION 1.4.23
@@ -21,16 +22,23 @@ SQLALCHEMY_DATABASE_URL = f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}
 
 try:
     engine = create_engine(SQLALCHEMY_DATABASE_URL) 
-    print("Database connection was successful")
+    print("SQLAlchemy engine initialized successfully.")
 except Exception as e:
-    print(f"Database connection failed, error: {e}")
+    print(f"Failed to initialize SQLAlchemy engine (check database URL format): {e}")
 
 try:
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    print("Sessionmaker creation was successful")
+    print("SessionLocal factory created successfully.")
 except Exception as e:
-    print(f"Sessionmaker creation failed, error: {e}")
-    
+    print(f"Failed to create SessionLocal factory, error: {e}")
+
+# Test actual network connection and authentication to PostgreSQL
+try:
+    with engine.connect() as connection:
+        connection.execute(text("SELECT 1"))
+    print("Database authentication and connection test succeeded!")
+except Exception as e:
+    print(f"CRITICAL: Failed to connect or authenticate with PostgreSQL: {e}")
 
 Base = declarative_base()
 
