@@ -1,0 +1,27 @@
+[Unit]
+# Description of the systemd service
+Description=Gunicorn service for deploying FastAPI application
+# Ensures the service starts only after the network is up
+After=network.target
+
+[Service]
+# Non-root Linux user and group that will run the application
+User=<your_username>
+Group=<your_group>
+
+# Absolute path to your project root (where app/ folder or main.py lives)
+WorkingDirectory=/home/<your_username>/<path_to_project_root>/
+
+# Environment variable pointing to your virtual environment binaries
+Environment="PATH=/home/<your_username>/<path_to_venv>/bin"
+
+# Executable command to run Gunicorn with Uvicorn ASGI workers
+# Syntax: /path/to/venv/bin/gunicorn -w <num_workers> -k uvicorn.workers.UvicornWorker <module>:<app_instance> --bind <host>:<port>
+ExecStart=/home/<your_username>/<path_to_venv>/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+
+# Automatically restart service if it crashes unexpectedly
+Restart=always
+
+[Install]
+# Tells systemd to start this service automatically on boot in standard multi-user mode
+WantedBy=multi-user.target
