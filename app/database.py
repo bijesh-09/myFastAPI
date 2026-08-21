@@ -9,7 +9,7 @@ from app.myenv import settings
 
 db_pass = settings.database_password
 db_user = settings.database_username
-db_host = settings.database_host
+db_host = settings.database_hostname
 db_name = settings.database_name
 
 # SQLALCHEMY_DATABASE_URL = f"postgresql://<username>:<password>@<ip_addr> OR <hostname>/<database_name>"

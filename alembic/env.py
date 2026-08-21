@@ -32,7 +32,7 @@ from app.myenv import settings
 
 db_pass = settings.database_password
 db_user = settings.database_username
-db_host = settings.database_host
+db_host = settings.database_hostname
 db_name = settings.database_name
 
 #adding psycopg2 driver to sqlalchemy url for alembic to work with postgresql (its optional, alembic will pick up whichever is available)

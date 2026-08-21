@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent  # basedir will be my_fast_api/app
 class Settings(BaseSettings):
     database_password: str
     database_username: str = "postgres"
-    database_host: str = "localhost"
+    database_hostname: str = "localhost"
     database_name: str = "fastapi"
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
