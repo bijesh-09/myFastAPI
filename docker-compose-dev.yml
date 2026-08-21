@@ -1,0 +1,26 @@
+services:
+  fastapi:
+    depends_on:
+      - postgres #run the postgres container 1st before fastapi container
+    build: .
+    ports: 
+    - 8000:8000
+    volumes:
+      - ./:/home/appuser/src:ro #mount the current directory of host machine to the specified path inside container in read only mode
+      #NOTE: the current dir of host machine must be the project root dir to work smoothly
+    env_file:
+      - ./app/.env #injects host machine's env file vars to container's system path
+    environment:
+      - DATABASE_HOSTNAME=postgres #hostname of database container or service name of database container
+      #note this also overrides the DATABASE_HOSTNAME env var in the container's syspath previosuly injected by env file 
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    
+  postgres:
+    image: postgres:18.6-alpine
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=fastapi
+    volumes:
+      - postgres-db:/var/lib/postgresql #service level volume that mounts the top level volume to this specified path inside container
+volumes:
+  postgres-db: #top level volume created in hostmachine for persisting data of postgres container
