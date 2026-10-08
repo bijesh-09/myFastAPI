@@ -2,24 +2,31 @@ services:
   fastapi:
     depends_on:
       - postgres #run the postgres container 1st before fastapi container
-    build: .
+      - condition: service_healthy 
+    build: . #finds Dockerfile in the current directory of host machine and builds the image from it
     ports: 
     - 8000:8000
-    volumes:
+    volumes: #the bind mount below helps sync changes in our host machine's current directory to the specified path inside container in real time
       - ./:/home/appuser/src:ro #mount the current directory of host machine to the specified path inside container in read only mode
       #NOTE: the current dir of host machine must be the project root dir to work smoothly
     env_file:
       - ./app/.env #injects host machine's env file vars to container's system path
     environment:
       - DATABASE_HOSTNAME=postgres #hostname of database container or service name of database container
-      #note this also overrides the DATABASE_HOSTNAME env var in the container's syspath previosuly injected by env file 
-    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+      #note this also overrides the DATABASE_HOSTNAME=localhost env var in the container's syspath previosuly injected by env file 
+
+    #this overrides the  default CMD instruction in the Dockerfile
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 #must reload to reflect changes in the codebase in real time, and must bind to
     
   postgres:
     image: postgres:18.6-alpine
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=fastapi
+      
+      #NOTE: if u write like this then docker compose will read env vars from host machine's sys path not the env file we provided
+      # - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      # - POSTGRES_DB=${DATABASE_NAME}
     volumes:
       - postgres-db:/var/lib/postgresql #service level volume that mounts the top level volume to this specified path inside container
 volumes:
