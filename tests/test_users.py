@@ -40,7 +40,18 @@ def test_login_user(client, test_user):
     #verifying token 
     payload = jwt.decode(login_res.access_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     id = int(payload.get("sub")) #res returns id as str , for eg id 1 as '1'
-    
+
     assert id == test_user['id']
     assert login_res.token_type == "bearer"
     assert res.status_code == 200
+
+@pytest.mark.parametrize("email, password, status_code", [
+    ("wrong@gmail.com", "wrongPassword", 404),
+    ("hello@gmail.com", "wrongPassword", 401),
+    (None, "wrongPassword", 422) #this will be pydantic validation error
+])
+def test_incorrect_login(test_user, client, email, password, status_code):
+    res = client.post("/login", data={"username": email, "password": password})
+    print(res.json(), res.status_code)
+
+    assert res.status_code == status_code
