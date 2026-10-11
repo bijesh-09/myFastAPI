@@ -37,7 +37,10 @@ db_name = settings.database_name
 
 #adding psycopg2 driver to sqlalchemy url for alembic to work with postgresql (its optional, alembic will pick up whichever is available)
 SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{db_user}:{db_pass}@{db_host}/{db_name}"
-config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
+
+#url becomes test_url from tests/dummy_db.py when running pytest, if not it uses our real db url
+url = config.attributes.get("test_url") or SQLALCHEMY_DATABASE_URL #returns first truthy value
+config.set_main_option("sqlalchemy.url", url)
 
 #------------------------------------------------------------------------------------------------------------------ 
 

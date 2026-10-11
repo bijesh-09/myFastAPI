@@ -19,6 +19,7 @@ class PostUpdate(BaseModel): # we can add additional things if we want
     content: str
 
 class UserCreate(BaseModel):
+    id: int
     email: EmailStr 
     created_at: datetime
 
