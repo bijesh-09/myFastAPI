@@ -7,7 +7,6 @@ import pytest
     (-2,-6,-8)
 ])
 def test_add(num1, num2, expected):
-    print("testing add")
     assert add(num1,num2) == expected 
 
 #FIXTURES helps in minimizing repeated code duplication, for eg instantiating BankACC here
