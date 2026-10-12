@@ -1,23 +1,29 @@
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, HTTPException, Depends, Response
 from app import models, pydantic_schemas, oauth2, database
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/vote", tags=["Votes"])
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def vote(vote: pydantic_schemas.Vote, db: Session = Depends(database.get_db), current_user: int =
-         Depends(oauth2.get_current_user)):
-    
+def vote(vote: pydantic_schemas.Vote, res: Response, db: Session = Depends(database.get_db), current_user: int 
+         = Depends(oauth2.get_current_user)):
+
+    #NOTE: here 'vote' is payload not our vote table, and we are querying Post table here to see if the post we are gonna vote exists or not
     post = db.query(models.Post).filter(models.Post.id == vote.post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {vote.post_id} does not exist")
 
+    # --> if this models.Vote.post_id == vote.post_id returns None then the post we are gonna vote has zero votes
+    # --> if this models.Vote.post_id == vote.post_id returns returns rows and models.Vote.user_id == current_user.id returns None
+    #  then the post we are gonna vote is not voted by us yet
+    # --> if this models.Vote.post_id == vote.post_id returns returns rows and models.Vote.user_id == current_user.id returns rows
+    #  then the post we are gonna vote is already voted by us 
     vote_query = db.query(models.Vote).filter(models.Vote.post_id == vote.post_id, models.Vote.user_id == current_user.id)
     found_vote = vote_query.first()
     if(vote.dir == 1):
         if found_vote:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
-                                detail=f"user {current_user.id} has already voted on post {vote.post_id}")
+                                detail=f"User {current_user.id} has already voted on post {vote.post_id}")
         new_vote = models.Vote(post_id=vote.post_id, user_id=current_user.id)
         db.add(new_vote)
         db.flush()
@@ -26,7 +32,8 @@ def vote(vote: pydantic_schemas.Vote, db: Session = Depends(database.get_db), cu
     else:
         if not found_vote:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                                detail=f"user {current_user.id} has not voted on post {vote.post_id}")
+                                detail=f"User {current_user.id} has not voted on post {vote.post_id}")
         vote_query.delete(synchronize_session=False)
         db.commit()
+        res.status_code = status.HTTP_200_OK #returning 200 though deletetion of vote means 204 cuz we are returning a dict with 'message'
         return {"message": "Successfully deleted vote"}
