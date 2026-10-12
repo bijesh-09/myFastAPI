@@ -29,9 +29,9 @@ def test_create_user(client):
 #     assert res.status_code == 200
 
 #depends upon test_user fixture in conftest.py
-def test_login_user(client, test_user):
+def test_login_user(client, single_user_fixture):
     # the body should be of 'form-data' type which is 'data' here, also OAuth2PasswordRequestForm strictly looks for 'usernme' and 'password' keys in payload
-    res = client.post("/login", data={"username": test_user['email'], "password": test_user['password']})
+    res = client.post("/login", data={"username": single_user_fixture['email'], "password": single_user_fixture['password']})
     print(res.json(), res.status_code)
     
     #for pydantic validation of response model
@@ -41,16 +41,16 @@ def test_login_user(client, test_user):
     payload = jwt.decode(login_res.access_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     id = int(payload.get("sub")) #res returns id as str , for eg id 1 as '1'
 
-    assert id == test_user['id']
+    assert id == single_user_fixture['id']
     assert login_res.token_type == "bearer"
     assert res.status_code == 200
 
 @pytest.mark.parametrize("email, password, status_code", [
     ("wrong@gmail.com", "wrongPassword", 404),
-    ("hello@gmail.com", "wrongPassword", 401),
+    ("hello@gmail.com", "wrongPassword", 401), #despite single_user_fixture isnt used in test_incorrect_login, this dict will use single_user_fixture indirectly
     (None, "wrongPassword", 422) #this will be pydantic validation error
 ])
-def test_incorrect_login(test_user, client, email, password, status_code):
+def test_incorrect_login(single_user_fixture, client, email, password, status_code): 
     res = client.post("/login", data={"username": email, "password": password})
     print(res.json(), res.status_code)
 

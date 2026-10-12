@@ -9,9 +9,11 @@ from app.myenv import settings
 from app.models import Base
 from app.database import get_db
 from app.main import app
+from app import pydantic_schemas
+from app.oauth2 import create_access_token, verify_access_token
 import pytest
 from fastapi.testclient import TestClient
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from alembic.config import Config
 from alembic import command
 
@@ -84,9 +86,11 @@ def client(session):
 
     yield TestClient(app)
 
+
+# ----------------------------------------------------------Single user test-----------------------------------------------------
 #making test_login_user is now independent of test_create_user
 @pytest.fixture
-def test_user(client):
+def single_user_fixture(client):
     user_data = {"email": "hello@gmail.com", "password": "hello"}
     res = client.post("/users", json=user_data)
     print(res.json(), res.status_code)
@@ -94,3 +98,92 @@ def test_user(client):
     new_user['password'] = user_data['password'] #adding password to new_user json so that test_login_user can get access to the password
     assert res.status_code == 201
     return new_user
+
+@pytest.fixture
+def token(single_user_fixture):
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                              detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+    
+    token = create_access_token(data={"sub": str(single_user_fixture['id'])})
+    verify_access_token(token=token, credentials_exception=credentials_exception)
+    return token
+
+@pytest.fixture
+def authenticated_client(token, client):
+    client.headers = {
+        **client.headers, #unpacking all the client(i.e. a req)'s headers
+        "Authorization": f"Bearer {token}" #updating the Authorization header with token
+    }
+    return client
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------Multi user test-------------------------------------------------------------------
+
+@pytest.fixture
+def set_of_users_fixture(client):
+    user_data = [
+        {"email": "hi@gmail.com", "password": "hi"},
+        {"email": "bro@gmail.com", "password": "bro"},
+        {"email": "pro@gmail.com", "password": "pro"}
+    ]
+    created_user = []
+    for user in user_data:
+        res = client.post("/users", json=user)
+        print(res.json(), res.status_code)
+        pydantic_schemas.UserCreate(**res.json())
+        new_user = res.json()
+        # new_user['password'] = user_data['password'] we dont need password since we are using token to verify auth session here
+        assert res.status_code == 201
+        created_user.append(new_user)
+    return created_user
+
+def make_headers(user_id):
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                                  detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+        
+    token = create_access_token(data={"sub": str(user_id)})
+    verify_access_token(token=token, credentials_exception=credentials_exception)
+    return {"Authorization": f"Bearer {token}"}
+
+@pytest.fixture
+def auth_headers():
+    return make_headers
+
+@pytest.fixture
+def create_posts_fixture(set_of_users_fixture, client):
+    posts_data = [
+        {
+            "title": "hi post 1",
+            "content": "hi post content",
+            "owner_id": set_of_users_fixture[0]['id']
+        },
+        {
+            "title": "hi post 2",
+            "content": "hi post content 2",
+            "owner_id": set_of_users_fixture[0]['id']
+        },
+        {
+            "title": "bro post",
+            "content": "bro post content",
+            "owner_id": set_of_users_fixture[1]['id']
+        },
+        {
+            "title": "pro post",
+            "content": "pro post content 2",
+            "owner_id": set_of_users_fixture[2]['id']
+        }
+    ]
+
+    posts = []
+
+    for p in posts_data:
+        res = client.post("/posts", json={"title": p['title'], "content": p['content']}
+                          , headers=make_headers(p['owner_id']))
+        print(res.json())
+        pydantic_schemas.PostRespond(**res.json())
+        post = res.json()
+        posts.append(post)
+
+    return posts
