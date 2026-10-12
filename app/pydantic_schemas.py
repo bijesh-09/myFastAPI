@@ -1,22 +1,25 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, StringConstraints
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Annotated
 
 class PostBase(BaseModel):
     id: int | None = None
     title: str
     content: str
-    published: bool = True 
+    published: bool
 
 #for sending req body from browser to fastapi server
 #here these title content and published will be send to db that appends that along with other attributes like id, createdat
+NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 class PostCreate(BaseModel):
-    title: str
-    content: str
+    title: NonEmptyStr
+    content: NonEmptyStr
+    published: bool = True
 
 class PostUpdate(BaseModel): # we can add additional things if we want
-    title: str
-    content: str
+    title: NonEmptyStr
+    content: NonEmptyStr
+    published: bool = True
 
 class UserCreate(BaseModel):
     id: int

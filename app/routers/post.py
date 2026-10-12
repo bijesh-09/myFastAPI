@@ -41,7 +41,7 @@ def get_post(id: int, db:Session = Depends(get_db), current_user: int = Depends(
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"post with id: {id} was not found")
+                            detail=f"Post with id: {id} was not found")
     else:
         return post
 
@@ -54,7 +54,7 @@ def delete_post(id: int, db:Session = Depends(get_db), current_user: int = Depen
 
     if deleted_post_query.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"post with id: {id} could not be deleted since its not found")
+                            detail=f"Post with id: {id} could not be deleted since its not found")
 
     to_be_deleted_post = deleted_post_query.first()
     if to_be_deleted_post.owner_id != current_user.id:
