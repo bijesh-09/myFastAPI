@@ -26,7 +26,7 @@ def test_bank_set_amt(bank_acc): #the arg bank_amt here references to the bank_a
      assert bank_acc.balance == 50 #the referenced fixture can be used as instance of bank acc
 
 def test_deposit(bank_acc):
-     assert bank_acc.deposit(50) == 100
+     assert bank_acc.deposit(50) == 101
 
 def test_deposit(bank_acc):
      assert bank_acc.withdraw(20) == 30  
