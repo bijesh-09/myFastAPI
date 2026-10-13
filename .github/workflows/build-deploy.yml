@@ -142,7 +142,7 @@ jobs: # list of jobs that will run on our runner
 
 
 
-# Continuous Deployment(CD) for aws ec2 instance
+# Continuous Deployment(CD) for aws ec2 instance 
   deploy-on-ec2:
     needs: [build]
     runs-on: ubuntu-latest
