@@ -28,9 +28,6 @@ def test_bank_set_amt(bank_acc): #the arg bank_amt here references to the bank_a
 def test_deposit(bank_acc):
      assert bank_acc.deposit(50) == 101
 
-def test_deposit(bank_acc):
-     assert bank_acc.withdraw(20) == 30  
-
 def test_collect_interest(bank_acc):
      #rounding off upto precision 6, cuz collect_interest() returns 55.00000000000001 which is not 55
      assert round(bank_acc.collect_interest(),6) == 55 #interest rate is 10%
