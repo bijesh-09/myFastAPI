@@ -1,0 +1,21 @@
+name: Build and Deploy Code
+
+# on: [push, pull_request] --> our runner(vm) will trigger on every push or PR on any branch of the repo
+on: 
+  push: # this is another way of writing lists
+    branches:
+      - "main"
+      # - "ot1her_branch"
+  # pull_request:
+  #   branches:
+  #     - "main"
+  #     - "test_branch"
+
+jobs: # list of jobs that will run on our runner
+  job1:
+    runs-on: ubuntu-latest #the vm we wanna run our job
+    steps:
+      - name: pulling git repo #step1
+        uses: actions/checkout@v7 #this is an action grabbed from github marketplace
+      - name: say hi to Bijesh #step2
+        run: echo "Hi Bijesh!"
