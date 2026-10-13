@@ -127,7 +127,13 @@ jobs: # list of jobs that will run on our runner
     needs: [build] # VVI NOTE: jobs in github actions run in parallel, but our 'deploy' depends upon 'build'  
     # so we use needs: [] where we can define multiple jobs in [] if current job depends on multiple jobs
 
+    environment:
+      name: prod
+
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
     steps:
       - name: Trigger Render deploy , linked to my_fast_api:latest
-        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"  
 
