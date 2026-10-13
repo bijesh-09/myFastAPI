@@ -11,9 +11,31 @@ on:
   #     - "main"
   #     - "test_branch"
 
+#NOTE: if u wanna make this env access to all jobs of this current workflow then declare here
+# environment: 
+#       name: testing #this should be the exact environment name u created in repo's settings > environment
+#     env: 
+#      .......
+
 jobs: # list of jobs that will run on our runner
   job1:
+    #NOTE: these environments are scoped only to this particualr job ie. job1 rn
+    environment: 
+      name: testing #this should be the exact environment name u created in repo's settings > environment
+
+    env: 
+      DATABASE_HOSTNAME: ${{secrets.DATABASE_HOSTNAME}}
+      DATABASE_PORT: ${{secrets.DATABASE_PORT}}
+      DATABASE_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
+      DATABASE_NAME: ${{secrets.DATABASE_NAME}}
+      DATABASE_USERNAME: ${{secrets.DATABASE_USERNAME}}
+
+      SECRET_KEY: ${{secrets.SECRET_KEY}}
+      ALGORITHM: ${{secrets.ALGORITHM}}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
+
     runs-on: ubuntu-latest #the vm we wanna run our job
+    
     steps:
       - name: Pulling git repo # pull github repo to runner
         uses: actions/checkout@v7 #this is an action grabbed from github marketplace
