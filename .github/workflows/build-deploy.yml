@@ -136,4 +136,3 @@ jobs: # list of jobs that will run on our runner
     steps:
       - name: Trigger Render deploy , linked to my_fast_api:latest
         run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"  
-
