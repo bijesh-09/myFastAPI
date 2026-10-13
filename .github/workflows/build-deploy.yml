@@ -26,5 +26,11 @@ jobs: # list of jobs that will run on our runner
 
       - name: Update pip
         run: python -m pip install --upgrade pip
+
       - name: Install all dependencies
         run: pip install -r requirements.txt
+      
+      - name: Install pytest
+        run: | #its YAML syntax, not a shell pipe, it runs following commands one by one, each line represents a command
+          pip install pytest
+          pytest
