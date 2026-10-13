@@ -15,7 +15,16 @@ jobs: # list of jobs that will run on our runner
   job1:
     runs-on: ubuntu-latest #the vm we wanna run our job
     steps:
-      - name: pulling git repo #step1
+      - name: Pulling git repo # pull github repo to runner
         uses: actions/checkout@v7 #this is an action grabbed from github marketplace
-      - name: say hi to Bijesh #step2
-        run: echo "Hi Bijesh!"
+
+      - name: Install python-3.14.7 #install python to runner
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.14.7'
+          cache: 'pip' # caching pip dependencies
+
+      - name: Update pip
+        run: python -m pip install --upgrade pip
+      - name: Install all dependencies
+        run: pip install -r requirements.txt
