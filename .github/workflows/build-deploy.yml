@@ -122,7 +122,8 @@ jobs: # list of jobs that will run on our runner
       
 
 
-  deploy_on_render: # Continuous Deployment(CD) for render
+# Continuous Deployment(CD) for render
+  deploy_on_render: 
 
     runs-on: ubuntu-latest
 
@@ -141,7 +142,8 @@ jobs: # list of jobs that will run on our runner
 
 
 
-  deploy-on-ec2: # Continuous Deployment(CD) for aws ec2 instance
+# Continuous Deployment(CD) for aws ec2 instance
+  deploy-on-ec2:
     needs: [build]
     runs-on: ubuntu-latest
     environment:
