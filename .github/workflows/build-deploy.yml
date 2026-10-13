@@ -24,18 +24,33 @@ jobs: # list of jobs that will run on our runner
       name: testing #this should be the exact environment name u created in repo's settings > environment
 
     env: 
-      DATABASE_HOSTNAME: ${{secrets.DATABASE_HOSTNAME}}
-      DATABASE_PORT: ${{secrets.DATABASE_PORT}}
+      DATABASE_HOSTNAME: ${{vars.DATABASE_HOSTNAME}}
+      DATABASE_PORT: ${{vars.DATABASE_PORT}}
       DATABASE_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
-      DATABASE_NAME: ${{secrets.DATABASE_NAME}}
-      DATABASE_USERNAME: ${{secrets.DATABASE_USERNAME}}
+      DATABASE_NAME: ${{vars.DATABASE_NAME}}
+      DATABASE_USERNAME: ${{vars.DATABASE_USERNAME}}
 
       SECRET_KEY: ${{secrets.SECRET_KEY}}
-      ALGORITHM: ${{secrets.ALGORITHM}}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
+      ALGORITHM: ${{vars.ALGORITHM}}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{vars.ACCESS_TOKEN_EXPIRE_MINUTES}}
+
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
+          POSTGRES_DB: ${{vars.DATABASE_NAME}}_test #since we used dbname as fastapi_test in conftest.py
+          POSTGRES_USER: ${{vars.DATABASE_USERNAME}}
+        ports:
+          - "${{vars.DATABASE_PORT}}:5432" #ports expect list so raw ${{}} wont work, so put it as string
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     runs-on: ubuntu-latest #the vm we wanna run our job
-    
+
     steps:
       - name: Pulling git repo # pull github repo to runner
         uses: actions/checkout@v7 #this is an action grabbed from github marketplace
@@ -52,7 +67,7 @@ jobs: # list of jobs that will run on our runner
       - name: Install all dependencies
         run: pip install -r requirements.txt
       
-      - name: Install pytest
+      - name: Install pytest and do testing
         run: | #its YAML syntax, not a shell pipe, it runs following commands one by one, each line represents a command
           pip install pytest
           pytest
