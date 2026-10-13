@@ -121,7 +121,7 @@ jobs: # list of jobs that will run on our runner
         run: echo ${{ steps.docker_build.outputs.digest }} #this requires the id we ve given to "Build and push Docker image" step
       
 
-      
+
   deploy_on_render: # Continuous Deployment(CD) for render
 
     runs-on: ubuntu-latest
@@ -142,57 +142,57 @@ jobs: # list of jobs that will run on our runner
 
 
   deploy-on-ec2: # Continuous Deployment(CD) for aws ec2 instance
-  needs: [build]
-  runs-on: ubuntu-latest
-  environment:
-    name: prod
-  concurrency:            # never run two deploys ec2 at once
-    group: deploy-ec2
-    cancel-in-progress: false
-  steps:
-    - name: Set up SSH
-      env:
-        SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-        KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
-      run: |
-        install -m 700 -d ~/.ssh
-        echo "$SSH_KEY" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
-        echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+    concurrency:            # never run two deploys ec2 at once
+      group: deploy-ec2
+      cancel-in-progress: false
+    steps:
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "$KNOWN_HOSTS" > ~/.ssh/known_hosts
 
-    - name: Deploy to EC2
-      env:
-        HOST: ${{ vars.EC2_HOST }}
-        SSH_USER: ${{ vars.EC2_USER }}
-        REPO: ${{ github.repository }}
-      run: |
-        ssh -i ~/.ssh/deploy_key -o ConnectTimeout=15 -o ServerAliveInterval=30 \
-          "$SSH_USER@$HOST" "REPO=$REPO bash -s" <<'EOF'
-        set -euo pipefail
-        APP_DIR="$HOME/myFastAPI"
-        COMPOSE="docker compose -f docker-compose-prod.yml"
+      - name: Deploy to EC2
+        env:
+          HOST: ${{ vars.EC2_HOST }}
+          SSH_USER: ${{ vars.EC2_USER }}
+          REPO: ${{ github.repository }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o ConnectTimeout=15 -o ServerAliveInterval=30 \
+            "$SSH_USER@$HOST" "REPO=$REPO bash -s" <<'EOF'
+          set -euo pipefail
+          APP_DIR="$HOME/myFastAPI"
+          COMPOSE="docker compose -f docker-compose-prod.yml"
 
-        if [ -d "$APP_DIR/.git" ]; then
-          cd "$APP_DIR"
-          git pull --ff-only origin main
-        else
-          git clone "https://github.com/$REPO.git" "$APP_DIR"
-          cd "$APP_DIR"
-        fi
-
-        [ -f app/.env ] || { echo "app/.env is missing on the server"; exit 1; }
-
-        $COMPOSE pull
-        $COMPOSE up -d --remove-orphans
-        docker image prune -af
-
-        for i in $(seq 1 15); do
-          if curl -fsS http://127.0.0.1:8000/ >/dev/null; then
-            echo "App is healthy"; exit 0
+          if [ -d "$APP_DIR/.git" ]; then
+            cd "$APP_DIR"
+            git pull --ff-only origin main
+          else
+            git clone "https://github.com/$REPO.git" "$APP_DIR"
+            cd "$APP_DIR"
           fi
-          sleep 4
-        done
-        echo "App did not become healthy"
-        $COMPOSE logs --tail=50 fastapi
-        exit 1
-        EOF
+
+          [ -f app/.env ] || { echo "app/.env is missing on the server"; exit 1; }
+
+          $COMPOSE pull
+          $COMPOSE up -d --remove-orphans
+          docker image prune -af
+
+          for i in $(seq 1 15); do
+            if curl -fsS http://127.0.0.1:8000/ >/dev/null; then
+              echo "App is healthy"; exit 0
+            fi
+            sleep 4
+          done
+          echo "App did not become healthy"
+          $COMPOSE logs --tail=50 fastapi
+          exit 1
+          EOF
