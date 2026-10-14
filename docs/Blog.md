@@ -10,7 +10,7 @@ I thought I'd follow a long YouTube course, build a REST API, and call it a day.
 
 This post is the story: what I built, what broke, and the one part that almost made me quit (spoiler: it involves SSH keys). If you're staring at a huge tutorial and wondering whether it's worth the hours, hear me out.
 
-If you only want the how-to, skip the story and open the EC2 deploy guide in the repo.
+If you only want the how-to, skip the story and open the [`EC2 deploy guide`](Guide.md#guide-deploy-myfastapi-to-your-own-ec2-with-github-actions) in the repo.
 
 ## What I built, and who taught me
 
@@ -102,5 +102,5 @@ If you're thinking about taking the course, do it, but learn some Linux, Docker 
 
 - Course: https://youtu.be/0sOvCWFmrtA
 - Live demo: https://my-fast-api-latest.onrender.com/docs
-- Deploy guide: Guide: Deploy myFastAPI to your own EC2 with GitHub Actions
-- README: README: myFastAPI
+- Deploy guide: [`Guide: Deploy myFastAPI to your own EC2 with GitHub Actions`](Guide.md#guide-deploy-myfastapi-to-your-own-ec2-with-github-actions)
+- README: [`README`](../README.md)
